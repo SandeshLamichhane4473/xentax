@@ -1,24 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import Dashboard from './pages/Dashboard'
+import Users from "./sections/Users";
+import Setup from "./sections/Setup";
+import Report from "./sections/Reports";
+import Sakaform from "./sections/Sakaform";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Default from "./sections/Default";
+import GuestRoute from "./components/GuestRoute";
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+ <Routes>
+      {/* Guest-only routes */}
+        <Route element={<GuestRoute />}>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
+        </Route>
+        {/* Dashboard with nested routes */}
+        <Route path="/dashboard" element={<Dashboard />}>
+         <Route index element={<Navigate to="default" replace />} />  {/* default */}
+
+           
+           <Route element={<ProtectedRoute allowedAccess="U" />}>
+            <Route path="users" element={<Users />} />
+          </Route> 
+ 
+           <Route path="default" element={<Default />} />
+          <Route path="setup" element={<Setup />} />
+          <Route path="report" element={<Report />} />
+          <Route path="sakaform" element={<Sakaform />} />
+
+        </Route>
+
+        {/* Redirect unknown paths to login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
