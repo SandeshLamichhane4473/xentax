@@ -1,9 +1,11 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const userInfo = JSON.parse(localStorage.getItem("userInfo")); // { username, access_level }
+
+ // { username, access_level }
 
 function Sidebar() {
+   const { user  } = useAuth();
   const navigate = useNavigate();
     const { logout } = useAuth();
  
@@ -11,7 +13,7 @@ function Sidebar() {
 
    const links = [
     { name: "Users", path: "users", access: "U" },       // only users with 'U' can see
-    { name: "Setup", path: "setup", access: "" },       // example: admin only
+    { name: "Setup", path: "setup", access: "S" },       // example: admin only
     { name: "Report", path: "report", access: "" },
     { name: "Sakaform", path: "sakaform", access: "" },
     { name: "Logout", path: "logout" },
@@ -26,7 +28,7 @@ function Sidebar() {
   return (
     <div className="w-40 bg-primary border-r p-2 flex flex-col">
    <h2 className="text-sm font-bold mb-6 mt-6 text-secondary   w-full  ">
-    NRB Xentax
+    NRB Xentax  
   </h2>
 
   <nav className="flex flex-col space-y-2">
@@ -43,11 +45,17 @@ function Sidebar() {
               </button>
             );
           }
+ 
+          // if (link.access && user?.access_level !== link.access) {
 
-          // Only show link if user has access
-          if (link.access && userInfo?.access_level !== link.access) {
-            return null;
-          }
+          //   return null;
+          // }
+          if (
+              link.access &&
+              !user?.access_level.trim().toUpperCase().includes(link.access.toUpperCase())
+            ) {
+              return null;
+            }
 
           return (
             <NavLink

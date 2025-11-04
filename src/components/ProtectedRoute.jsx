@@ -1,12 +1,22 @@
 import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // adjust path
 
 function ProtectedRoute({ allowedAccess }) {
-  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const { user } = useAuth(); // get from context instead of localStorage
 
-  // if no token or access doesn't match → redirect to login
-  if (!userInfo || (allowedAccess && userInfo.access_level !== allowedAccess)) {
-    alert("user try to accss the users, but has no right.")
+  // Not logged in → redirect to login
+  if (!user) {
+    alert("You are not logged in.");
     return <Navigate to="/login" replace />;
+  }
+
+  // Check access level
+  if (
+    allowedAccess &&
+    !user.access_level.trim().toUpperCase().includes(allowedAccess.toUpperCase())
+  ) {
+    alert("You do not have permission to access this page.");
+    return <Navigate to="/unauthorized" replace />; // ✅ must return Navigate
   }
 
   // else render child routes
@@ -14,3 +24,4 @@ function ProtectedRoute({ allowedAccess }) {
 }
 
 export default ProtectedRoute;
+

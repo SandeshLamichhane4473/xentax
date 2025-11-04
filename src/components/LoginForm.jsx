@@ -26,11 +26,12 @@ function LoginForm() {
       // Example user info
       const userInfo = {
         username: "admin",
-        access_level: "U",
+        access_level: "SUX",
         token: "example-jwt-token",
       };
 
       login(userInfo);  // store in context + localStorage
+     
       navigate("/dashboard/");
     } else {
       alert("Invalid credentials!");

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-
+import Modal from '../Modal';
+import NewUserForm from './NewUserForm';
+import ResetPassword from './ResetPassword';
 const dummyUsers = [
   {
     LOGINNAME: 'admin01',
@@ -35,6 +37,16 @@ const dummyUsers = [
 ];
 
 const UsersTable = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
+  const handleEditClick = (user) => {
+  setEditingUser(user);
+  setIsModalOpen(true);
+};
+
+
+
   const [users, setUsers] = useState(dummyUsers);
 
   // --- Pagination State ---
@@ -47,12 +59,110 @@ const UsersTable = () => {
 
   const totalPages = Math.ceil(users.length / itemsPerPage);
 
+
+  const handleCreateUser = (data) => {
+  console.log("New user data:", data);
+  // TODO: call your API to create the user
+  // Example: await api.createUser(data);
+  alert("User created successfully")
+}
+// Reset user ####################################
+const [resetUser, setResetUser] = useState(null);
+
+const handleResetPasswordClick = (user) => {
+  setResetUser(user);
+  setIsModalOpen(true);
+};
+
+//################Function to unlock the table ####################
+const handleUnlock = (user) => {
+  const confirmed = window.confirm(`Are you sure you want to unlock user "${user.USERNAME}"?`);
+  
+  if (confirmed) {
+    // ✅ Call API to unlock the user
+    console.log("Unlocking user:", user);
+    // Example:
+    // await axios.post(`/api/unlock-user`, { username: user.USERNAME });
+  }else{
+    console.log("Ulocking user:", user);
+  }
+};
+// Handle for search query //
+const [searchQuery, setSearchQuery] = useState("");
+
+// Function to filter/search users
+const handleSearch = () => {
+  console.log("Searching for:", searchQuery);
+  // ✅ You can call API or filter list here
+  // Example: fetch(`/api/users?query=${searchQuery}`)
+};
+
+//########################
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Users List</h2>
-        <button className="bg-primary text-white px-3 py-1 rounded hover:opacity-90 text-sm">+ New User</button>
+         {/* Left side: Search Box */}
+
+         <div className="flex items-center space-x-2">
+        <input
+          type="text"
+          placeholder="Search by username or email"
+          className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <button
+          onClick={handleSearch}
+          className="bg-primary text-white px-3 py-1 rounded hover:opacity-90 text-sm"
+        >
+          Search
+        </button>
+        <button  onClick={() => setIsModalOpen(true)} className="bg-primary text-white px-3 py-1 rounded hover:opacity-90 text-sm">+ New User</button>
       </div>
+      {/* Right side: New User Button */}
+        
+        
+      </div>
+
+      {/* Here is the code for the modal */}
+          <Modal isOpen={isModalOpen} onClose={() => {
+            setIsModalOpen(false); 
+            setEditingUser(null);
+            setResetUser(null);
+             }}
+              title={
+                resetUser ? "Reset Password" : editingUser ? "Edit User" : "New User"
+              }
+              
+              >
+
+             {resetUser ? (
+                  <ResetPassword
+                    username={resetUser.USERNAME}
+                    onSubmit={(data) => {
+                      console.log("Reset Password API payload:", data); // <-- Call FastAPI here
+                      setIsModalOpen(false);
+                      setResetUser(null);
+                    }}
+                    onClose={() => setIsModalOpen(false)}
+                  />
+                ) : (
+            <NewUserForm
+              initialData={editingUser}
+              onSubmit={(data) => {
+                if (editingUser) {
+                  // call API to update user
+                } else {
+                  // call API to create new user
+                }
+                setIsModalOpen(false);
+                setEditingUser(null);
+              }
+            
+            }
+            />) }
+          </Modal>
 
       {/* Table wrapper with horizontal scroll */}
       <div className="overflow-x-auto max-w-full">
@@ -97,9 +207,9 @@ const UsersTable = () => {
                 <td className="p-2">{user.GRACECOUNT}</td>
                 <td className="p-2">{user.STATUS === 'Y' ? 'Active' : 'Inactive'}</td>
                 <td className="p-2 space-x-2">
-                  <button className="text-blue-500 hover:underline">Edit</button>
-                  <button className="text-yellow-500 hover:underline">Reset Password</button>
-                  <button className="text-green-500 hover:underline">Unlock</button>
+                  <button onClick={() => handleEditClick(user)} className="text-blue-500 hover:underline">Edit</button>
+                  <button   onClick={() => handleResetPasswordClick(user)} className="text-yellow-500 hover:underline">Reset Password</button>
+                  <button  onClick={() => handleUnlock(user)} className="text-green-500 hover:underline">Unlock</button>
                 </td>
               </tr>
             ))}
@@ -108,7 +218,7 @@ const UsersTable = () => {
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex justify-end mt-2 space-x-2">
+      <div className="flex justify-center mt-2 space-x-2">
         {Array.from({ length: totalPages }, (_, i) => (
           <button
             key={i + 1}
