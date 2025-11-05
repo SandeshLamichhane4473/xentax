@@ -12,6 +12,8 @@ import Banks from "./components/setup/Banks";
 import BankBranches from "./components/setup/BankBranches";
 import RevenueHeadings from "./components/setup/RevenueHeadings";
 import CentralGovtHeadings from "./components/setup/CentralGovtHeadings.jsx";
+import SakaForm1Input from "./components/sakaform/SakaForm1Input.jsx";
+import SakaForm1Validate from "./components/sakaform/SakaForm1Validate.jsx";
  
 function App() {
   return (
@@ -43,10 +45,16 @@ function App() {
              <Route path="setup/revenueheadings" element={<RevenueHeadings />} /> 
              <Route path="setup/centralgovtheadings" element={<CentralGovtHeadings />} />
           </Route>
- 
+
+          {/* Only access_level = 'F'  Forms */} 
+          <Route element={<ProtectedRoute allowedAccess="F" />}>
+             <Route path="sakaform" element={<Sakaform />} />
+             <Route path="sakaform1input" element={<SakaForm1Input />} />
+             <Route path="sakaform1validate" element={<SakaForm1Validate />} />
+          </Route>
 
           <Route path="report" element={<Report />} />
-          <Route path="sakaform" element={<Sakaform />} />
+         
           <Route path="default" element={<Default />} />
           {/* End of dashboard route  */}
          </Route>

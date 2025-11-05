@@ -26,7 +26,7 @@ function LoginForm() {
       // Example user info
       const userInfo = {
         username: "admin",
-        access_level: "SUX",
+        access_level: "SUXF",
         token: "example-jwt-token",
       };
 

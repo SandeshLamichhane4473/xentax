@@ -39,7 +39,6 @@ const GeneralSetup = () => {
                   if (item.code === "502")       navigate("/dashboard/setup/bankbranches");
                   
                    if (item.code === "602")       navigate("/dashboard/setup/centralgovtheadings");
-                   
                 }
                 }>
                 <td className="p-2 border">{item.code}</td>

@@ -14,8 +14,8 @@ function Sidebar() {
    const links = [
     { name: "Users", path: "users", access: "U" },       // only users with 'U' can see
     { name: "Setup", path: "setup", access: "S" },       // example: admin only
+    { name: "SakaForm", path: "sakaform", access: "F" },
     { name: "Report", path: "report", access: "" },
-    { name: "Sakaform", path: "sakaform", access: "" },
     { name: "Logout", path: "logout" },
   ];
 
