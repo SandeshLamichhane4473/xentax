@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import Breadcrumb from "../common/Breadcrumb";
-const SakaForm1Validate = () => {
-  // Dummy Data
+
+const SakaForm1View = () => {
+  // Dummy data
   const [tableData] = useState(
     Array.from({ length: 282 }, (_, i) => ({
       BANK_CODE: `1100${(i % 50).toString().padStart(4, "0")}`,
@@ -31,49 +32,54 @@ const SakaForm1Validate = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 20;
 
-  // Search state
-  const [searchField, setSearchField] = useState("BANK_CODE"); // default search field
+  // Search Filters
+  const [searchField, setSearchField] = useState("BANK_CODE");
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchDate, setSearchDate] = useState("");
 
-  // Filtered data based on search
-  const filteredData = tableData.filter((row) =>
-    row[searchField].toString().toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtering Logic (Handles both text & date search)
+  const filteredData = tableData.filter((row) => {
+    const matchesText =
+      searchTerm === "" ||
+      row[searchField]?.toString().toLowerCase().includes(searchTerm.toLowerCase());
 
-  // Pagination calculations
+    const matchesDate =
+      searchDate === "" ||
+      row[searchField] === searchDate ||
+      row["PHERIST_DATE"] === searchDate ||
+      row["TRANS_DATE"] === searchDate;
+
+    return matchesText && matchesDate;
+  });
+
   const totalRecords = filteredData.length;
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = filteredData.slice(indexOfFirstRecord, indexOfLastRecord);
 
+  // Pagination handlers
   const handleFirst = () => setCurrentPage(1);
   const handleLast = () => setCurrentPage(totalPages);
   const handlePrev = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
   const handleNext = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
-  const handleValidateClick = (row) => {
-    alert(`Validating data for BANK: ${row.BANK_CODE}, PHERIST NO: ${row.PHERIST_NO}`);
-  };
-
   return (
     <div className="p-4">
-      <h2 className="text-lg font-bold mb-4">SakaForm1 Validation Table</h2>
-
-      {/* Bread crumb */}
-        <Breadcrumb
+      <h2 className="text-lg font-bold mb-4">SakaForm1 View Table</h2>
+      <Breadcrumb
         items={[
           { label: "SakaForm", path: "/dashboard/sakaform" },
-           { label: "Input", path: "/dashboard/sakaform/sakaform1input" },
-           { label: "View", path: "/dashboard/sakaform/sakaform1view" }, //correct
-          
-          { label: "Validate" }
+           { label: "SakaForm1", path: "/dashboard/sakaform" },
+          { label: "Input", path: "/dashboard/sakaform/sakaform1input" },
+          { label: "Validate", path: "/dashboard/sakaform/sakaform1validate" },
+          { label: "View" }
         ]}
       />
 
-
-      {/* Search Box */}
-      <div className="flex items-center mb-4 space-x-2">
+      {/* Search Section */}
+      <div className="flex flex-wrap items-center mb-4 space-x-2">
+        {/* Select Search Field */}
         <select
           value={searchField}
           onChange={(e) => setSearchField(e.target.value)}
@@ -81,12 +87,19 @@ const SakaForm1Validate = () => {
         >
           <option value="BANK_CODE">Bank Code</option>
           <option value="PHERIST_NO">Pherist No</option>
+          <option value="TRANS_DATE">Transaction Date</option>
+          <option value="PHERIST_DATE">Pherist Date</option>
         </select>
 
+        {/* Text Search */}
         <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          type={searchField.includes("DATE") ? "date" : "text"}
+          value={searchField.includes("DATE") ? searchDate : searchTerm}
+          onChange={(e) =>
+            searchField.includes("DATE")
+              ? setSearchDate(e.target.value)
+              : setSearchTerm(e.target.value)
+          }
           placeholder={`Search by ${searchField}`}
           className="px-2 py-1 border rounded w-64"
         />
@@ -99,10 +112,10 @@ const SakaForm1Validate = () => {
         </button>
       </div>
 
-      {/* Table Wrapper */}
+      {/* Table */}
       <div className="overflow-x-auto w-full">
         <table className="min-w-[1600px] border border-gray-300 text-[12px] whitespace-nowrap table-auto">
-          <thead className="bg-primary text-white sticky top-0">
+          <thead className="bg-primary text-white">
             <tr>
               <th className="p-2">SN</th>
               <th className="p-2 sticky left-0 bg-primary z-40">BANK CODE</th>
@@ -125,10 +138,8 @@ const SakaForm1Validate = () => {
               <th className="p-2">PAYABLE AMT</th>
               <th className="p-2">INPT USER</th>
               <th className="p-2">CTRL USER</th>
-              <th className="p-2">Validate</th>
             </tr>
           </thead>
-
           <tbody>
             {currentRecords.map((row, index) => (
               <tr
@@ -156,55 +167,32 @@ const SakaForm1Validate = () => {
                 <td className="p-2">{row.PAYABLE_AMT.toFixed(2)}</td>
                 <td className="p-2">{row.INPT_USER}</td>
                 <td className="p-2">{row.CTRL_USER}</td>
-                <td className="p-2">
-                  <button
-                    onClick={() => handleValidateClick(row)}
-                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                  >
-                    Validate
-                  </button>
-                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       <div className="flex justify-between items-center mt-2 text-sm">
-        <div>
-          Records: {indexOfFirstRecord + 1} - {Math.min(indexOfLastRecord, totalRecords)} of {totalRecords}
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={handleFirst}
-            disabled={currentPage === 1}
-            className="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-          >
+        <span>
+          Records: {indexOfFirstRecord + 1} - {Math.min(indexOfLastRecord, totalRecords)} of{" "}
+          {totalRecords}
+        </span>
+        <div className="flex space-x-2">
+          <button onClick={handleFirst} disabled={currentPage === 1} className="px-2 py-1 border rounded">
             &lt;&lt;
           </button>
-          <button
-            onClick={handlePrev}
-            disabled={currentPage === 1}
-            className="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-          >
+          <button onClick={handlePrev} disabled={currentPage === 1} className="px-2 py-1 border rounded">
             &lt;
           </button>
           <span>
             Page {currentPage} of {totalPages}
           </span>
-          <button
-            onClick={handleNext}
-            disabled={currentPage === totalPages}
-            className="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-          >
+          <button onClick={handleNext} disabled={currentPage === totalPages} className="px-2 py-1 border rounded">
             &gt;
           </button>
-          <button
-            onClick={handleLast}
-            disabled={currentPage === totalPages}
-            className="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-          >
+          <button onClick={handleLast} disabled={currentPage === totalPages} className="px-2 py-1 border rounded">
             &gt;&gt;
           </button>
         </div>
@@ -213,4 +201,4 @@ const SakaForm1Validate = () => {
   );
 };
 
-export default SakaForm1Validate;
+export default SakaForm1View;

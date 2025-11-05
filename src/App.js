@@ -14,7 +14,13 @@ import RevenueHeadings from "./components/setup/RevenueHeadings";
 import CentralGovtHeadings from "./components/setup/CentralGovtHeadings.jsx";
 import SakaForm1Input from "./components/sakaform/SakaForm1Input.jsx";
 import SakaForm1Validate from "./components/sakaform/SakaForm1Validate.jsx";
- 
+import GovernmentAccountsHeadings from "./components/setup/GovernmentAccountsHeadings.jsx";
+import LocalGovernmentHeadings from "./components/setup/LocalGovernmentHeadings.jsx";
+import MonthNames from "./components/setup/MonthNames.jsx";
+import BanksAccountsOnGl from "./components/setup/BanksAccountsOnGl.jsx";
+import LocalGvtGrant from "./components/setup/LocalGvtGrant.jsx";
+import SakaForm1View from "./components/sakaform/SakaForm1View.jsx";
+
 function App() {
   return (
     <Router>
@@ -44,13 +50,20 @@ function App() {
             <Route path="setup/bankbranches" element={<BankBranches />} /> 
              <Route path="setup/revenueheadings" element={<RevenueHeadings />} /> 
              <Route path="setup/centralgovtheadings" element={<CentralGovtHeadings />} />
+             <Route path="setup/GovernmentAccountsHeadings" element={<GovernmentAccountsHeadings />} />
+             <Route path="setup/LocalGovernmentHeadings" element={<LocalGovernmentHeadings />} />
+              <Route path="setup/MonthNames" element={<MonthNames />} /> 
+              <Route path="setup/BanksAccount" element={<BanksAccountsOnGl />} />   
+              <Route path="setup/LocalGvtGrant" element={<LocalGvtGrant />} />
+             
           </Route>
 
           {/* Only access_level = 'F'  Forms */} 
           <Route element={<ProtectedRoute allowedAccess="F" />}>
              <Route path="sakaform" element={<Sakaform />} />
-             <Route path="sakaform1input" element={<SakaForm1Input />} />
-             <Route path="sakaform1validate" element={<SakaForm1Validate />} />
+             <Route path="sakaform/sakaform1input" element={<SakaForm1Input />} />
+             <Route path="sakaform/sakaform1validate" element={<SakaForm1Validate />} />
+              <Route path="sakaform/sakaform1view" element={<SakaForm1View />} />
           </Route>
 
           <Route path="report" element={<Report />} />

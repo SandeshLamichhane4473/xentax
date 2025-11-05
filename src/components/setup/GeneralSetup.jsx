@@ -39,12 +39,20 @@ const GeneralSetup = () => {
                   if (item.code === "502")       navigate("/dashboard/setup/bankbranches");
                   
                    if (item.code === "602")       navigate("/dashboard/setup/centralgovtheadings");
+                   
+                   if (item.code === "603")       navigate("/dashboard/setup/GovernmentAccountsHeadings");
+                   if (item.code === "604")       navigate("/dashboard/setup/LocalGovernmentHeadings");
+          
+                     if (item.code === "801")       navigate("/dashboard/setup/MonthNames");
+                     if(item.code === "930")       navigate("/dashboard/setup/BanksAccount");
+                     if(item.code === "999")       navigate("/dashboard/setup/LocalGvtGrant");
+                   
                 }
                 }>
                 <td className="p-2 border">{item.code}</td>
                 <td className="p-2 border">{item.name}</td>
                 <td className="p-2 border text-center">
-                  <button className="text-blue-500 hover:underline mr-2">View</button>
+                  <button className="text-blue-500 hover:underline mr-2">Edit</button>
     
                 </td>
               </tr>

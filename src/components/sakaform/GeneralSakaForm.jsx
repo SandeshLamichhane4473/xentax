@@ -16,7 +16,7 @@ const GeneralSakaForm = () => {
      const navigate = useNavigate();
   return (
     <div className="p-4">
-      <h2 className="text-lg font-bold mb-4">General Setup</h2>
+      <h2 className="text-lg font-bold mb-4">SakaForm Setup</h2>
 
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto border border-gray-300 text-sm">
@@ -40,7 +40,7 @@ const GeneralSakaForm = () => {
                 <td className="p-2 border">{item.name}</td>
                 <td className="p-2 border text-center">
                   <button   onClick={() => {
-                     if( item.code === "1")navigate("/dashboard/sakaform1input");
+                     if( item.code === "1")navigate("/dashboard/sakaform/sakaform1input");
                 
                 }
                 } className="text-blue-500 hover:underline mr-2">Input</button>
@@ -48,7 +48,7 @@ const GeneralSakaForm = () => {
                 </td>
                  <td className="p-2 border text-center">
                   <button onClick={()=>{
-                    if( item.code === "1")navigate("/dashboard/sakaform1validate");
+                    if( item.code === "1")navigate("/dashboard/sakaform/sakaform1validate");
                     
                   }} className="text-blue-500 hover:underline mr-2">Validate</button>
                   
@@ -56,7 +56,8 @@ const GeneralSakaForm = () => {
 
                  <td className="p-2 border text-center">
                   <button onClick={()=>{
-                    
+                 
+                    if( item.code === "1")navigate("/dashboard/sakaform/sakaform1view");
                     //viewe
                   }} className="text-blue-500 hover:underline mr-2">View</button>
                 </td>

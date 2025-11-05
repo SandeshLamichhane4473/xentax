@@ -71,8 +71,8 @@ function SakaForm1Input() {
         items={[
           { label: "SakaForm", path: "/dashboard/sakaform" },
            { label: "SakaForm1", path: "/dashboard/sakaform" },
-           { label: "View", path: "/dashboard/sakaform" }, //correct
-          { label: "Validate", path: "/dashboard/sakaform" },
+           { label: "View", path: "/dashboard/sakaform/sakaform1view" }, //correct
+          { label: "Validate", path: "/dashboard/sakaform/sakaform1validate" },
           { label: "Input" }
         ]}
       />
