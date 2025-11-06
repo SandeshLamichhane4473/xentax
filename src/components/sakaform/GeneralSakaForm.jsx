@@ -1,6 +1,6 @@
   import { useNavigate } from "react-router-dom"
  
-
+import SaKaForm1Sample from '../../assets/sakaforms/SaKaForm1Sample.xlsx'
 const generalSetupData = [
   { code: "1", name: "Saka Form 1" },
   { code: "2", name: "Saka Form 2" },
@@ -63,12 +63,12 @@ const GeneralSakaForm = () => {
                 </td>
 
                 <td className="p-2 border text-center">
-                  <button onClick={()=>{
-                    
-                    
-                  }} className="text-blue-500 hover:underline mr-2">Download</button>
-                  
-                </td>
+                  {
+                    item.code === "1" ?
+                    <a className="text-blue-500 hover:underline mr-2" href="/assets/sakaform/SaKaForm1Sample.xlsx">download</a>:
+                    <a>Not found</a>
+                  }
+                          </td>
                   
               </tr>
             ))}

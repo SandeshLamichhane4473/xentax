@@ -1,126 +1,145 @@
-import React, { useState } from "react";
+ 
 import Breadcrumb from "../common/Breadcrumb";
 import * as XLSX from "xlsx";
 import BankSelect from "../common/BankSelect";
+ 
+import { useMemo, useRef, useState } from "react";
+ 
 
 function SakaForm1Input() {
-  const [step, setStep] = useState(1);
-  const [excelData, setExcelData] = useState([]);
-  const [fileName, setFileName] = useState("");
-  const [bankCode, setBankCode] = useState("");
-  const [transactionDate, setTransactionDate] = useState("");
+const [step, setStep] = useState(1);
+const [excelData, setExcelData] = useState([]);
+const [fileName, setFileName] = useState("");
+const [bankCode, setBankCode] = useState("");
+const [transactionDate, setTransactionDate] = useState("");
+const [successMessage, setSuccessMessage] = useState("");
 
-  // ✅ Excel File Upload
-  const handleExcelUpload = (e) => {
+const fileInputRef = useRef(null);
+// ----------------------
+// Excel Upload
+// ----------------------
+const handleExcelUpload = (e) => {
+  setSuccessMessage("");
+
   const file = e.target.files[0];
   if (!file) return;
-  setFileName(file.name);
 
+  setFileName(file.name);
   const reader = new FileReader();
+
   reader.onload = (event) => {
     const data = new Uint8Array(event.target.result);
     const workbook = XLSX.read(data, { type: "array" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-    // ---------- Validation & Filtering ----------
-    // 1. Find header row (contains 'NRB_Code')
-    console.log(jsonData)
+    const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", blankrows: false });
 
-const headerIndex = jsonData.findIndex(row =>
-  Object.values(row).some(val => 
-    typeof val === "string" && val.trim().toLowerCase() === "nrb_code"
-  )
-);
+    const normalize = (str) => {
+      if (str == null) return "";
+      return str.toString().replace(/[\r\n]/g, "").replace(/\s+/g, "").trim().toLowerCase();
+    };
 
-if (headerIndex === -1) {
-  alert("❌ Header row not found!");
-  return;
-}
+    const headerIdx = rawRows.findIndex((r) => r.some((c) => normalize(c) === "branchcode"));
 
-// Now get actual header keys (the keys in jsonData[headerIndex])
-const headerRow = jsonData[headerIndex];
-const headerKeys = Object.keys(headerRow);
-console.log("headerrows",headerRow)
-// Optional: map original messy keys to clean names
-const cleanHeaderMap = {};
-headerKeys.forEach((key, index) => {
-  const val = headerRow[key].toString().trim();
-  cleanHeaderMap[key] = val || `COLUMN_${index}`; // fallback name
-});
+    if (headerIdx === -1) {
+      alert("Excel Header row not found!");
+      return;
+    }
 
-// Use this map to access the columns dynamically
+    const headerRow = rawRows[headerIdx];
 
-    // 2. Find total row (optional)
-    const totalRowIndex = jsonData.findIndex(
-      row => row["NRB_Code"] && row["NRB_Code"].toString().toLowerCase() === "total"
-    );
+    const colMap = {};
+    headerRow.forEach((cell, i) => {
+      if (cell != null) colMap[i] = normalize(cell);
+    });
 
-    // 3. Extract branch rows (numeric NRB_Code)
-    const branchRows = jsonData.filter(row => !isNaN(row["NRB_Code"]));
+    const cleanRows = [];
+    for (let i = headerIdx + 1; i < rawRows.length; i++) {
+      const src = rawRows[i];
+      if (!src || src.every((c) => c === "")) continue;
 
-    // 4. Keep only header + branch rows
-    const processedData = [jsonData[headerIndex], ...branchRows];
-
-    // 5. Optional: Validate totals if total row exists
-    if (totalRowIndex > -1) {
-      const totalRow = jsonData[totalRowIndex];
-      const columnsToSum = Object.keys(branchRows[0]).filter(
-        col => col !== "NRB_Code" && col !== "Branch Name"
-      );
-
-      const discrepancies = columnsToSum.filter(col => {
-        const sum = branchRows.reduce(
-          (acc, row) => acc + (parseFloat(row[col]) || 0),
-          0
-        );
-        const total = parseFloat(totalRow[col]) || 0;
-        return sum !== total;
+      const obj = {};
+      src.forEach((cell, idx) => {
+        const header = colMap[idx] || "";
+        obj[header] = cell ?? "";
       });
 
-      if (discrepancies.length > 0) {
-        alert(`⚠️ Discrepancies found in columns: ${discrepancies.join(", ")}`);
-      } else {
-        console.log("✅ Excel totals validated successfully!");
+      if (/^\d+$/.test(obj["branchcode"]) || /^\d+$/.test(obj["nrbcode"])) {
+        cleanRows.push(obj);
       }
     }
 
-    // 6. Set processed data
-    setExcelData(processedData);
-    alert("✅ Excel Uploaded and Validated Successfully!");
+    if (cleanRows.length === 0) {
+      alert("No clean branch rows found!");
+      return;
+    }
+
+    setExcelData(cleanRows);
   };
 
   reader.readAsArrayBuffer(file);
-  };
+};
 
-  // ✅ Submit Stage
-  const handleSubmit = () => {
-    const payload = { bankCode, transactionDate, excelData };
-    console.log("Sending to DB: ", payload);
-    alert("✅ Submitted Successfully!");
-  };
-
-  // Get column names
-const columns = Object.keys(excelData[0] || {});
-
-// Calculate sums for each column
-// Calculate sums only for Debit/Credit columns
-const columnTotals = {};
-columns.forEach((col) => {
-  if (/Debit|Credit/i.test(col)) { // ✅ Check if column contains Debit or Credit
-    columnTotals[col] = excelData.reduce((sum, row) => {
-      const value = parseFloat(row[col]);
-      return sum + (isNaN(value) ? 0 : value);
-    }, 0);
-  } else {
-    columnTotals[col] = ""; // Leave blank (or 0 if you prefer) for non-Debit/Credit columns
+// ----------------------
+// Submit
+// ----------------------
+const handleSubmit = () => {
+  const payload = { bankCode, transactionDate, excelData };
+// ✅ Validate required fields
+  if (!bankCode.trim() || !transactionDate.trim() || excelData.length === 0) {
+    alert("Please fill Bank Code, Transaction Date, and upload Excel data before submitting.");
+    return; // stop here
   }
-});
+
+
+  console.log("Sending to DB:", payload);
+
+  clearInputFiles();
+  setStep(1);
+  setSuccessMessage("✅ Submitted Successfully!");
+};
+
+// ----------------------
+// Clear inputs
+// ----------------------
+function clearInputFiles() {
+  setSuccessMessage("");
+  setExcelData([]);
+  setFileName("");
+  setBankCode("");
+  setTransactionDate("");
+
+  if (fileInputRef.current) {
+    fileInputRef.current.value = null;
+  }
+}
+
+// ----------------------
+// Column Totals using useMemo
+// ----------------------
+const columns = Object.keys(excelData[0] || {});
+const columnTotals = useMemo(() => {
+  const totals = {};
+  columns.forEach((col) => {
+    if (/Debit|Credit|Receivable/i.test(col)) {
+      totals[col] = excelData.reduce((sum, row) => {
+        const value = parseFloat(row[col]);
+        return sum + (isNaN(value) ? 0 : value);
+      }, 0);
+    } else {
+      totals[col] = "";
+    }
+  });
+  return totals;
+}, [excelData]); // ✅ 
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       {/* Title */}
       <h1 className="text-1xl font-bold text-blue-700 mb-4">📊 Saka Form 1</h1>
+      {successMessage && (
+  <p className="text-green-600 font-medium mb-2">{successMessage}</p>
+)}
 
       {/* Breadcrumb */}
       <Breadcrumb
@@ -138,33 +157,66 @@ columns.forEach((col) => {
         <h2 className="text-1xl font-semibold text-gray-700 mb-2">
           {step === 1 ? "Step 1: Upload Excel File" : "Step 2: Bank Info & Submit"}
         </h2>
+    <ul>
+ 
+</ul>
         <p className="text-gray-500 mb-4">Stage {step} of 2</p>
 
-        {/* STEP 1 */}
-        {step === 1 && (
-          <div className="border-dashed border-2 border-gray-300 p-6 text-center rounded-lg hover:bg-gray-50 transition">
+ {/* STEP 1 */}
+{step === 1 && (
+  <div className="border-dashed border-2 border-gray-300 p-6 text-center rounded-lg hover:bg-gray-50 transition">
+    
+    {/* File Input */}
+        <div className="text-center mb-4">
+          <label
+            className="bg-primary hover:opacity-90 transition duration-200 text-white font-medium px-5 py-2 rounded-lg cursor-pointer inline-block"
+          >
+            📁 Upload Excel
             <input
               type="file"
               accept=".xls,.xlsx"
               onChange={handleExcelUpload}
-              className="block mx-auto mb-4"
+              ref={fileInputRef}
+              className="hidden" // hide the default file input
             />
-            {fileName && (
-              <p className="text-sm text-gray-600">📁 Selected File: {fileName}</p>
-            )}
-            {excelData.length > 0 && (
-              <button
-                onClick={() => setStep(2)}
-                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow-md transition"
-              >
-                Next →
-              </button>
-            )}
-          </div>
-        )}
+          </label>
 
+          {/* Show selected file name */}
+          {fileName && (
+            <p className="text-sm text-gray-600 mt-2">Selected File: {fileName}</p>
+          )}
+        </div>
+
+            <div className="flex justify-center gap-4 mt-4">
+      {/* Next Button */}
+      {excelData.length > 0 && (
+        <button
+          onClick={
+            // now later put logic if the rows are less than 10,
+            () => setStep(2)}
+          className="bg-primary hover:opacity-90 transition duration-200 text-white px-2 py-2 rounded-lg shadow-md transition"
+        >
+          Next →
+        </button>
+      )}
+
+      {/* Clear File Button */}
+      {excelData.length > 0 || fileName ? (
+        <button
+          onClick={() => {
+            // Clear all relevant states
+           clearInputFiles()
+          }}
+          className="bg-gray-400 hover:opacity-90 transition duration-200 text-white px-5 py-2 rounded-lg shadow-md transition"
+        >
+          Clear File
+        </button>
+      ) : null}
+    </div>
+  </div>
+)}
 {step === 2 && (
-  <div className="space-y-6 max-w-6xl mx-auto">
+  <div className="space-y-6   mx-auto">
     {/* Top Row: Bank Select + Transaction Date */}
     <div className="flex flex-col sm:flex-row gap-4">
       {/* Bank Select */}
@@ -208,7 +260,7 @@ columns.forEach((col) => {
                 key={i}
                 className="p-2 border text-sm text-gray-700 font-medium text-left whitespace-nowrap overflow-hidden text-ellipsis"
               >
-                {displayKey}
+                {displayKey.toUpperCase()}
               </th>
             );
 
